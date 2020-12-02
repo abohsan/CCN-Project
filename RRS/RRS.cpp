@@ -112,14 +112,15 @@ void findavgTime(int processes[], int n, int bt[],
 int main() 
 { 
 	// process id's 
-	int processes[] = { 1, 2, 3}; 
+	int processes[] = { 1,2,3,4,5,6,7,8,9,10}; 
 	int n = sizeof processes / sizeof processes[0]; 
-
+	
 	// Burst time of all processes 
-	int burst_time[] = {10, 5, 8}; 
+	int burst_time[] = {3,2,5,9,14,8,12,1,6,4}; 
 
-	// Time quantum 
+	// Time quantum; time slot
 	int quantum = 2; 
+	cout << "quantum = " << quantum << endl;
 	findavgTime(processes, n, burst_time, quantum); 
 	return 0; 
 } 
