@@ -1,126 +1,128 @@
-// C++ program for implementation of RR scheduling 
+
 #include<iostream> 
 using namespace std; 
 
+int numOfPacket ; // number of packet
+int quantumTime ; // Time quantum / time slot
+int totalWaitingTime = 0; // the Total waiting time
+int totalTurnAroundTime = 0;// the Total turn around time
 // Function to find the waiting time for all 
-// processes 
-void findWaitingTime(int processes[], int n, 
-			int bt[], int wt[], int quantum) 
+// packet_id 
+void calculateTheWaitingTime(int packet_id[],  
+			int burstTime[], int waitingTime[]) 
 { 
-	// Make a copy of burst times bt[] to store remaining 
-	// burst times. 
-	int rem_bt[n]; 
-	for (int i = 0 ; i < n ; i++) 
-		rem_bt[i] = bt[i]; 
+	// Make a copy of burst times to store remaining burst times. 
+	int remainingBurstTime[numOfPacket];
+	for (int i = 0 ; i < numOfPacket ; i++) 
+		remainingBurstTime[i] = burstTime[i]; 
 
-	int t = 0; // Current time 
-
-	// Keep traversing processes in round robin manner 
-	// until all of them are not done. 
+	int currentTime = 0; // Current time 
+	// Keep itrating through packet_id in round robin manner 
+	// if all of the are done, raise a flag. 
 	while (1) 
 	{ 
-		bool done = true; 
-
-		// Traverse all processes one by one repeatedly 
-		for (int i = 0 ; i < n; i++) 
+		bool Flag = true; 
+		// Traverse all packet_id one by one repeatedly 
+		for (int i = 0 ; i < numOfPacket; i++) 
 		{ 
-			// If burst time of a process is greater than 0 
-			// then only need to process further 
-			if (rem_bt[i] > 0) 
+			// If burst time of a packet is not zero 
+			// then process the packet 
+			if (remainingBurstTime[i] > 0) 
 			{ 
-				done = false; // There is a pending process 
+				Flag = false; // There is a pending process 
 
-				if (rem_bt[i] > quantum) 
+				//if the burst time is greater than the quntum time
+				// then it will use all the given time, quntum time.
+				if (remainingBurstTime[i] > quantumTime) 
 				{ 
-					// Increase the value of t i.e. shows 
-					// how much time a process has been processed 
-					t += quantum; 
-
-					// Decrease the burst_time of current process 
-					// by quantum 
-					rem_bt[i] -= quantum; 
+					//Add up the quantum time to the current time
+					currentTime += quantumTime; 
+					//subtract the quantum time from the burst time
+					//and save the remainder
+					remainingBurstTime[i] -= quantumTime; 
 				} 
-
-				// If burst time is smaller than or equal to 
-				// quantum. Last cycle for this process 
+				// else the quantum is greater or equal to the burst time.
+				// therefore, it will be the last iteration
 				else
-				{ 
-					// Increase the value of t i.e. shows 
-					// how much time a process has been processed 
-					t = t + rem_bt[i]; 
-
-					// Waiting time is current time minus time 
-					// used by this process 
-					wt[i] = t - bt[i]; 
-
-					// As the process gets fully executed 
-					// make its remaining burst time = 0 
-					rem_bt[i] = 0; 
+				{
+					// Add the brust time of the target packet to the 
+					// current time.
+					currentTime = currentTime + remainingBurstTime[i]; 
+					// used by this process
+					//subtracting the burst time from the current time give the waiting time 
+					waitingTime[i] = currentTime - burstTime[i]; 
+					
+					//since the burst time is less than the quantumTime,
+					// the packet will be excuted completely then set the burst time to zero.
+					remainingBurstTime[i] = 0; 
 				} 
 			} 
 		} 
-
-		// If all processes are done 
-		if (done == true) 
+		// If all packets are done 
+		if (Flag == true) 
 		break; 
 	} 
 } 
 
 // Function to calculate turn around time 
-void findTurnAroundTime(int processes[], int n, 
-						int bt[], int wt[], int tat[]) 
+void calculateTurnAroundTime(int packet_id[],  
+						int burstTime[], int waitingTime[], int tat[]) 
 { 
 	// calculating turnaround time by adding 
-	// bt[i] + wt[i] 
-	for (int i = 0; i < n ; i++) 
-		tat[i] = bt[i] + wt[i]; 
+	// burstTime[i] + waitingTime[i] 
+	for (int i = 0; i < numOfPacket ; i++) 
+		tat[i] = burstTime[i] + waitingTime[i]; 
 } 
 
-// Function to calculate average time 
-void findavgTime(int processes[], int n, int bt[], 
-									int quantum) 
-{ 
-	int wt[n], tat[n], total_wt = 0, total_tat = 0; 
-
-	// Function to find waiting time of all processes 
-	findWaitingTime(processes, n, bt, wt, quantum); 
-
-	// Function to find turn around time for all processes 
-	findTurnAroundTime(processes, n, bt, wt, tat); 
-
-	// Display processes along with all details 
-	cout << "Processes "<< " Burst time "
+void displayPacket(int waitingTime[],int tat[], int burstTime[]){
+	// Display packets along with all its details 
+	cout << "packet_id "<< " Burst time "
 		<< " Waiting time " << " Turn around time\n"; 
 
-	// Calculate total waiting time and total turn 
-	// around time 
-	for (int i=0; i<n; i++) 
+	// Calculate total waiting time and total turn around time 
+	for (int i=0; i<numOfPacket; i++) 
 	{ 
-		total_wt = total_wt + wt[i]; 
-		total_tat = total_tat + tat[i]; 
-		cout << " " << i+1 << "\t\t" << bt[i] <<"\t "
-			<< wt[i] <<"\t\t " << tat[i] <<endl; 
+		totalWaitingTime = totalWaitingTime + waitingTime[i]; 
+		totalTurnAroundTime = totalTurnAroundTime + tat[i]; 
+		cout << " " << i+1 << "\t\t" << burstTime[i] <<"\t "
+			<< waitingTime[i] <<"\t\t " << tat[i] <<endl; 
 	} 
 
 	cout << "Average waiting time = "
-		<< (float)total_wt / (float)n; 
+		<< (float)totalWaitingTime / (float)numOfPacket; 
 	cout << "\nAverage turn around time = "
-		<< (float)total_tat / (float)n; 
+		<< (float)totalTurnAroundTime / (float)numOfPacket; 
+
+}
+
+// Function to calculate the Average Time 
+void calculateTheAverageTime(int packet_id[], int numOfPacket, int burstTime[]) 
+{ 
+	int waitingTime[numOfPacket], turnAroundTime[numOfPacket] ; 
+
+	// Finding the waiting time of all packets 
+	calculateTheWaitingTime(packet_id,  burstTime, waitingTime); 
+
+	// Finding turn around time for all packets
+	calculateTurnAroundTime(packet_id,  burstTime, waitingTime, turnAroundTime); 
+
+	// Display packets along with all details 
+	displayPacket( waitingTime, turnAroundTime, burstTime);
 } 
 
-// Driver code 
 int main() 
 { 
-	// process id's 
-	int processes[] = { 1,2,3,4,5,6,7,8,9,10}; 
-	int n = sizeof processes / sizeof processes[0]; 
-	
-	// Burst time of all processes 
-	int burst_time[] = {3,2,5,9,14,8,12,1,6,4}; 
+	// Packet id's 
+	int packet_id[] = { 1,2,3,4,5,6,7,8,9,10}; 
 
-	// Time quantum; time slot
-	int quantum = 2; 
-	cout << "quantum = " << quantum << endl;
-	findavgTime(processes, n, burst_time, quantum); 
+	numOfPacket = sizeof packet_id / sizeof packet_id[0]; 
+	
+	// Burst time of all packets 
+	int burstTime[] = {3,2,5,9,14,8,12,1,6,4}; 
+
+	// Time quantum / time slot
+	quantumTime = 1; 
+	cout << "quantum = " << quantumTime << endl;
+	calculateTheAverageTime(packet_id, numOfPacket, burstTime); 
 	return 0; 
 } 
